@@ -1,7 +1,6 @@
 version: '3.8'
 
 services:
-  # FastAPI application
   app:
     build: .
     container_name: fastapi-app
@@ -14,7 +13,6 @@ services:
     depends_on:
       - db
 
-  # PostgreSQL database
   db:
     image: postgres:13
     container_name: fastapi-db
@@ -27,7 +25,6 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
-  # Optional: A tool for easy management (like pgAdmin)
   pgadmin:
     image: dpage/pgadmin4
     container_name: pgadmin

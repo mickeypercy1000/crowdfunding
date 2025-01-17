@@ -16,11 +16,11 @@ router = APIRouter(prefix="/projects")
 
 @router.post("", response_model=ProjectResponseSchema)
 async def create_project(project: ProjectRequestSchema, db: Session = Depends(get_db), current_user: User = Depends(UserUtils.get_current_user)):
-    print(project)
     new_project = ProjectUtils.create_project(project, current_user, db)
     total_contributors = db.query(Contribution.contributor_id).filter(Contribution.project_id == new_project.id).distinct().count()
 
     return ProjectResponseSchema(
+        status=True,
         id=new_project.id,
         title=new_project.title.title(),
         description=new_project.description,
@@ -41,8 +41,8 @@ async def contribute_to_project(
 ):
     project = ProjectUtils.get_project_by_id(project_id, db)
     contribute = ProjectUtils.create_contribution(contribution, project, current_user, db)
-    print(contribute)
     return ContributionResponseSchema(
+        status=True,
         id=contribute.id,
         amount=contribute.amount,
         contributor=MyDetailsResponseSchema.from_orm(contribute.contributor),
@@ -59,6 +59,7 @@ async def get_projects(
     projects = db.query(Project).offset(skip).limit(limit).all()
     return [
         ProjectResponseSchema(
+            status=True,
             id=project.id,
             title=project.title,
             description=project.description,
@@ -90,6 +91,7 @@ async def get_project(
     ]
     return ModifiedProjectResponseSchema(
         project=ProjectResponseSchema(
+            status=True,
             id=project.id,
             title=project.title,
             description=project.description,
@@ -119,6 +121,7 @@ async def get_contribution(
 
     return [
         ContributionResponseSchema(
+            status=True,
             id=contribution.id,
             amount=contribution.amount,
             project=project,
@@ -145,6 +148,7 @@ async def get_single_contribution(
         )
     
     return ContributionResponseSchema(
+        status=True,
         id=contribution.id,
         amount=contribution.amount,
         project=project,

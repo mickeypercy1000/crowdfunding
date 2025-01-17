@@ -14,9 +14,9 @@ class ProjectRequestSchema(BaseModel):
     deadline: date
 
     class Config:
-        orm_mode = True
-        anystr_strip_whitespace = True
-        min_anystr_length = 1
+        from_attributes = True
+        str_strip_whitespace = True
+        str_min_length = 1
     
     @root_validator(pre=True)
     def check_fields_not_empty(cls, values):
@@ -38,9 +38,10 @@ class ProjectContributors(BaseModel):
     amount: float
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class ProjectResponseSchema(BaseModel):
+    status: bool
     id: uuid.UUID
     title: str
     description: str
@@ -51,22 +52,23 @@ class ProjectResponseSchema(BaseModel):
 
     class Config:
         from_attributes=True
-        allow_population_by_field_name = True
+        populate_by_name = True
 
 class ModifiedProjectResponseSchema(BaseModel):
+    status: bool
     project: ProjectResponseSchema
     contributors: Optional[List[ProjectContributors]] = []
 
     class Config:
         from_attributes=True
-        allow_population_by_field_name = True
+        populate_by_name = True
 
 
 class ContributionRequestSchema(BaseModel):
     amount: float
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
     @root_validator(pre=True)
     def check_fields_not_empty(cls, values):
@@ -79,6 +81,7 @@ class ContributionRequestSchema(BaseModel):
         return values
 
 class ContributionResponseSchema(BaseModel):
+    status: bool
     id: uuid.UUID
     amount: float
     contributor: MyDetailsResponseSchema
@@ -86,4 +89,4 @@ class ContributionResponseSchema(BaseModel):
     
     class Config:
         from_attributes=True
-        allow_population_by_field_name = True
+        populate_by_name = True

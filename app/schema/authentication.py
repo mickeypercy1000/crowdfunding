@@ -41,6 +41,7 @@ class LoginRequestSchema(BaseModel):
         return values
 
 class LoginResponseSchema(BaseModel):
+    status: bool
     user_id: uuid.UUID = None
     message: str
     email: EmailStr = None
@@ -50,7 +51,7 @@ class LoginResponseSchema(BaseModel):
     access_token: str = None
 
 class MyDetailsResponseSchema(BaseModel):
-    id: uuid.UUID=  None
+    id: uuid.UUID = None
     email: EmailStr = None
     firstname: str = None
     lastname: str = None
@@ -59,4 +60,4 @@ class MyDetailsResponseSchema(BaseModel):
 
     class Config:
         from_attributes=True
-        allow_population_by_field_name = True
+        populate_by_name = True

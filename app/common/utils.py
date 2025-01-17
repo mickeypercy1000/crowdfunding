@@ -58,12 +58,9 @@ class UserUtils:
             detail="Could not validate credentials",
             headers={"WWW-Authenticate": "Bearer"},
         )
-        print(credentials_exception)
         try:
             payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-            print(payload)
             email: str = payload.get("sub")
-            print(email)
             if email is None:
                 raise credentials_exception
         except JWTError:
@@ -71,13 +68,12 @@ class UserUtils:
         user = db.query(User).filter(User.email == email).first()
         if user is None:
             raise credentials_exception
-        print(user)
         return user
     
     @staticmethod
     def signup_user(signup_data: dict, db) -> User:
     
-        hashed_password = UserUtils.hash_password(signup_data.password)  # Securely hash the password
+        hashed_password = UserUtils.hash_password(signup_data.password)
         
         user = User(
             firstname=signup_data.firstname,
@@ -126,7 +122,6 @@ class CommonUtils:
 
     @staticmethod
     def send_email(verification_id, background_tasks, email: str, amount: float, type: str):
-        print("inside email")
         if type.lower() == "contribution":
             subject = "Contribution Received"
             message = f"Your contribution of {amount} has been received. We appreciate your support for this project."
@@ -143,7 +138,6 @@ class ProjectUtils:
 
     @staticmethod
     def check_project_exists(data: dict, db) -> bool:
-        print("inside util")
         if _ := db.query(Project).filter(func.lower(Project.title) == func.lower(data.title)).first():
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,

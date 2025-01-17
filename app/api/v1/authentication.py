@@ -29,6 +29,7 @@ async def login(data: LoginRequestSchema, db: Session = Depends(get_db)):
         data={"sub": user.email}, expires_delta=access_token_expires
     )
     return LoginResponseSchema(
+        status=True,
         user_id = user.id,
         message="Login successful",
         email=user.email,
