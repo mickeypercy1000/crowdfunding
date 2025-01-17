@@ -2,6 +2,7 @@ import os
 from pydantic_settings import BaseSettings
 from pathlib import Path
 from typing import Set, Dict, List, Any, Optional, Tuple, Literal
+from decouple import config
 
 class Settings(BaseSettings):
 
@@ -28,8 +29,8 @@ class Settings(BaseSettings):
     ALLOWED_HOSTS: List[str] = ["localhost", "127.0.0.1"]
 
     # Authentication
-    SECRET_KEY: str = "JfoZyeGIIVIMUw6jhRwwBQ_Az9NT2lKxbZQF43o5r8Y"
-    ALGORITHM: str = "HS256"
+    SECRET_KEY: str = config("SECRET_KEY")
+    ALGORITHM: str = config("ALGORITHM")
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
 
 settings = Settings()
