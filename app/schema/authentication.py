@@ -1,5 +1,5 @@
 import uuid
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 from datetime import datetime
 from typing import Optional
 
@@ -46,9 +46,13 @@ class LoginResponseSchema(BaseModel):
     access_token: str = None
 
 class MyDetailsResponseSchema(BaseModel):
-    user_id: uuid.UUID = None
+    user_id: uuid.UUID = Field(..., alias="id")
     email: EmailStr = None
     firstname: str = None
     lastname: str = None
     username: str = None
     date_joined: Optional[datetime] = None
+
+    class Config:
+        from_attributes=True
+        allow_population_by_field_name = True

@@ -12,6 +12,7 @@ from jose import JWTError, jwt
 from sqlalchemy.orm import Session
 
 from app.model.authentication import User
+from app.model.projects import Project
 from app.schema.authentication import SignupResponseSchema
 from app.config.settings import settings
 
@@ -120,3 +121,32 @@ class CommonUtils:
     @staticmethod
     def generate_otp() -> str:
         return random.randrange(100000, 999999)
+    
+
+class ProjectUtils:
+
+    @staticmethod
+    def check_project_exists(data: dict, db) -> bool:
+        print("inside util")
+        if _ := db.query(Project).filter((Project.title == data.title)).first():
+            raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Project with this title already exists"
+            )
+        return None
+        
+    def create_project(data: dict, current_user: object, db) -> Project:
+        check_project = ProjectUtils.check_project_exists(data, db)
+        if check_project is None:
+            new_project = Project(
+            title=data.title,
+            description=data.description,
+            goal_amount=data.goal_amount,
+            deadline=data.deadline,
+            creator=current_user
+        )
+        db.add(new_project)
+        db.commit()
+        db.refresh(new_project)
+        return new_project
+    

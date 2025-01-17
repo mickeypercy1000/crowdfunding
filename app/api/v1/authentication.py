@@ -1,12 +1,10 @@
 from datetime import timedelta
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
 from app.common.utils import UserUtils
 from app.config.database import get_db
-from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from app.model.authentication import User
-from app.schema.authentication import LoginRequestSchema, LoginResponseSchema, MyDetailsResponseSchema, SignUpRequestSchema, SignupResponseSchema, VerifyEmailRequestSchema
+from app.schema.authentication import LoginRequestSchema, LoginResponseSchema, MyDetailsResponseSchema, SignUpRequestSchema, SignupResponseSchema
 from app.config.settings import settings
 
 router = APIRouter(prefix="/users")

@@ -31,6 +31,6 @@ class Settings(BaseSettings):
     # Authentication
     SECRET_KEY: str = config("SECRET_KEY")
     ALGORITHM: str = config("ALGORITHM")
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 500
 
 settings = Settings()

@@ -1,7 +1,7 @@
-from sqlalchemy import UUID, Boolean, Column, ForeignKey, String
-from sqlalchemy.dialects.postgresql import JSON
+from sqlalchemy import Boolean, Column, String
 
 from app.model.base_model import BaseData
+from sqlalchemy.orm import relationship
 
 
 
@@ -14,3 +14,4 @@ class User(BaseData):
     email = Column(String, nullable=False, index=True, unique=True)
     is_active = Column(Boolean, nullable=False, default=True)
     password = Column(String, nullable=False)
+    projects = relationship('Project', back_populates='creator', cascade='all')
