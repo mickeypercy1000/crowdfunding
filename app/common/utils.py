@@ -2,7 +2,6 @@ from decimal import Decimal
 import random
 import re
 import uuid
-from app.common.email_setup import send_email_notif
 from app.config.database import get_db
 from sqlalchemy import func, or_
 from passlib.context import CryptContext
@@ -117,22 +116,6 @@ class UserUtils:
             raise ValueError(" ".join(errors))
         return value
 
-
-class CommonUtils:
-
-    @staticmethod
-    def send_email(verification_id, background_tasks, email: str, amount: float, type: str):
-        if type.lower() == "contribution":
-            subject = "Contribution Received"
-            message = f"Your contribution of {amount} has been received. We appreciate your support for this project."
-        
-            email_notif = send_email_notif(verification_id, background_tasks, subject, message, email)
-            return email_notif
-        
-    @staticmethod
-    def generate_otp() -> str:
-        return random.randrange(100000, 999999)
-    
 
 class ProjectUtils:
 
