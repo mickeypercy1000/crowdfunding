@@ -1,13 +1,15 @@
+from decimal import Decimal
+from typing import List, Optional
 import uuid
 from fastapi import HTTPException, status
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, Field, field_validator, root_validator
 from datetime import date, datetime
 
 from app.schema.authentication import MyDetailsResponseSchema
 
 class ProjectRequestSchema(BaseModel):
     title: str
-    description: str
+    description: Optional[str] = None
     goal_amount: float
     deadline: date
 
@@ -16,25 +18,27 @@ class ProjectRequestSchema(BaseModel):
         anystr_strip_whitespace = True
         min_anystr_length = 1
     
-    @field_validator("title")
-    def validate_title_not_empty(cls, value):
-        if not value.strip():
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Title cannot be empty"
-            )
-        return value
-    
-    @field_validator("deadline")
-    def validate_deadline(cls, value):
-        current_year = datetime.now().date()
-        if value < current_year:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Invalid deadline date"
-            )
-        return value
+    @root_validator(pre=True)
+    def check_fields_not_empty(cls, values):
+        for field_name, field_value in values.items():
+            if field_name == "description":
+                continue
+            if isinstance(field_value, str) and not field_value.strip():
+                raise ValueError(f"{field_name} must not be empty or blank")
+            if field_name == "goal_amount":
+                minimum_amount = 5000
+                if float(field_value) < minimum_amount:
+                    raise ValueError(f"Goal amount cannot be less than ₵{minimum_amount}")
+            
+        return values
 
+
+class ProjectContributors(BaseModel):
+    username: str = None
+    amount: float
+
+    class Config:
+        orm_mode = True
 
 class ProjectResponseSchema(BaseModel):
     id: uuid.UUID
@@ -42,4 +46,44 @@ class ProjectResponseSchema(BaseModel):
     description: str
     goal_amount: float
     deadline: date
-    current_user: MyDetailsResponseSchema
+    total_contribution: float
+    creator: MyDetailsResponseSchema
+
+    class Config:
+        from_attributes=True
+        allow_population_by_field_name = True
+
+class ModifiedProjectResponseSchema(BaseModel):
+    project: ProjectResponseSchema
+    contributors: Optional[List[ProjectContributors]] = []
+
+    class Config:
+        from_attributes=True
+        allow_population_by_field_name = True
+
+
+class ContributionRequestSchema(BaseModel):
+    amount: float
+
+    class Config:
+        orm_mode = True
+
+    @root_validator(pre=True)
+    def check_fields_not_empty(cls, values):
+        for field_name, field_value in values.items():
+            if isinstance(field_value, str) and not field_value.strip():
+                raise ValueError(f"{field_name} must not be empty or blank")
+            minimum_amount = 100
+            if float(field_value) < minimum_amount:
+                raise ValueError(f"Goal amount cannot be less than ₵{minimum_amount}")
+        return values
+
+class ContributionResponseSchema(BaseModel):
+    id: uuid.UUID
+    amount: float
+    contributor: MyDetailsResponseSchema
+    project: ProjectResponseSchema
+    
+    class Config:
+        from_attributes=True
+        allow_population_by_field_name = True

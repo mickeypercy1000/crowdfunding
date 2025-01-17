@@ -15,3 +15,7 @@ class User(BaseData):
     is_active = Column(Boolean, nullable=False, default=True)
     password = Column(String, nullable=False)
     projects = relationship('Project', back_populates='creator', cascade='all')
+    contributions = relationship('Contribution', back_populates='contributor', cascade='all')
+
+
+    

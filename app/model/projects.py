@@ -1,8 +1,8 @@
-from sqlalchemy import UUID, Column, ForeignKey, String, Date
+from datetime import datetime
+from sqlalchemy import UUID, Column, DateTime, ForeignKey, String, Date
 from app.model.base_model import BaseData
-from sqlalchemy.orm import validates, relationship
+from sqlalchemy.orm import relationship
 from sqlalchemy import Numeric
-from fastapi import status, HTTPException
 
 class Project(BaseData):
     __tablename__ = 'Project'
@@ -11,16 +11,18 @@ class Project(BaseData):
     goal_amount = Column(Numeric(10, 2))
     deadline = Column(Date)
     creator_id = Column(UUID, ForeignKey('User.id'), nullable=False)
+    total_contribution = Column(Numeric(10, 2), default=0.00)
     creator = relationship('User', back_populates='projects')
+    contributions = relationship('Contribution', back_populates='project')
 
-    @validates('goal_amount')
-    def validate_goal_amount(self, _, value):
-        minimum_goal = 5000
-        if value < minimum_goal:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Goal amount cannot be less ₵{minimum_goal}"
-            )
-        return value
+class Contribution(BaseData):
+    __tablename__ = 'Contribution'
 
+    contributor_id = Column(UUID, ForeignKey('User.id'), nullable=False)
+    project_id = Column(UUID, ForeignKey('Project.id'), nullable=False)
+    amount = Column(Numeric(10, 2))
+    timestamp = Column(DateTime, default=datetime.utcnow)
 
+    contributor = relationship('User', back_populates='contributions')
+    project = relationship('Project', back_populates='contributions')
+    

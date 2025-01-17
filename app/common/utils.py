@@ -1,8 +1,10 @@
+from decimal import Decimal
 import random
+import re
 import uuid
 from app.common.email_setup import send_email_notif
 from app.config.database import get_db
-from sqlalchemy import or_
+from sqlalchemy import func, or_
 from passlib.context import CryptContext
 from passlib.context import CryptContext
 from datetime import datetime, timedelta
@@ -10,12 +12,12 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
-
+from sqlalchemy.orm import aliased
 from app.model.authentication import User
-from app.model.projects import Project
+from app.model.projects import Contribution, Project
 from app.schema.authentication import SignupResponseSchema
 from app.config.settings import settings
-
+from sqlalchemy import func
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/v1/users/login")
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -25,7 +27,6 @@ class UserUtils:
 
     @staticmethod
     def check_user_exists(data: dict, db) -> bool:
-        print("inside util")
         if _ := db.query(User).filter(
             or_(
                 User.email == data.email,
@@ -104,16 +105,31 @@ class UserUtils:
         to_encode.update({"exp": expire})
         encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
         return encoded_jwt
+    
+    @staticmethod
+    def validate_password(value: str) -> str:
+        conditions = [
+            (r'\d', "The password must contain at least one number."),
+            (r'[A-Z]', "The password must contain at least one capital letter."),
+            (r'[a-z]', "The password must contain at least one lowercase letter."),
+            (r'[!@#$%^&*()\-=_+`~[\]{}|;:,.<>?]', "The password must contain at least one special character."),
+        ]
+        if len(value) < 8 or len(value) > 100:
+            raise ValueError("The password must be between 8 and 100 characters.")
+        errors = [msg for pattern, msg in conditions if not re.search(pattern, value)]
+        if errors:
+            raise ValueError(" ".join(errors))
+        return value
 
 
 class CommonUtils:
 
     @staticmethod
-    def send_email(verification_id, background_tasks, email: str, otp: str, type: str):
+    def send_email(verification_id, background_tasks, email: str, amount: float, type: str):
         print("inside email")
-        if type.lower() == "signup":
-            subject = "Email Verification"
-            message = f"Your email verification code is {otp}"
+        if type.lower() == "contribution":
+            subject = "Contribution Received"
+            message = f"Your contribution of {amount} has been received. We appreciate your support for this project."
         
             email_notif = send_email_notif(verification_id, background_tasks, subject, message, email)
             return email_notif
@@ -128,14 +144,34 @@ class ProjectUtils:
     @staticmethod
     def check_project_exists(data: dict, db) -> bool:
         print("inside util")
-        if _ := db.query(Project).filter((Project.title == data.title)).first():
+        if _ := db.query(Project).filter(func.lower(Project.title) == func.lower(data.title)).first():
             raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Project with this title already exists"
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Project with this title already exists"
             )
         return None
         
-    def create_project(data: dict, current_user: object, db) -> Project:
+    @staticmethod
+    def get_project_by_id(project_id: str, db: object) -> Project:
+        project = db.query(Project).filter(Project.id == project_id).first()
+        if not project:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Project not found"
+            )
+        return project
+    
+    @staticmethod
+    def contribution_deadline_check(project: Project) -> bool:
+        if datetime.now().date() > project.deadline:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="The project deadline has passed. Contributions are no longer allowed."
+            )
+        return True
+    
+    @staticmethod
+    def create_project(data: dict, current_user: object, db: object) -> Project:
         check_project = ProjectUtils.check_project_exists(data, db)
         if check_project is None:
             new_project = Project(
@@ -150,3 +186,50 @@ class ProjectUtils:
         db.refresh(new_project)
         return new_project
     
+    @staticmethod
+    def create_contribution(contribution: object, project: object, current_user: object, db: Session) -> Contribution:
+        check_deadline = ProjectUtils.contribution_deadline_check(project)
+        if not check_deadline:
+            return {"status": False, "message": "Deadline for the project has passed. Contributions are no longer accepted.", "code": 400}
+        new_contribution = Contribution(
+            contributor=current_user,
+            project=project,
+            amount=contribution.amount
+        )
+        db.add(new_contribution)
+        project.total_contribution += Decimal(str(contribution.amount))
+        db.commit()
+        db.refresh(new_contribution)
+        db.refresh(project)
+        return new_contribution
+
+
+class ContributionsUtils:
+    def get_contributors_and_total(project_id: str, db: Session, page: int = 1, page_size: int = 10):
+        Contributor = aliased(User)
+        contributors_query = (
+            db.query(
+                Contributor.username,
+                func.sum(Contribution.amount).label('total_contribution')
+            )
+            .join(Contribution, Contribution.contributor_id == Contributor.id)
+            .filter(Contribution.project_id == project_id)
+            .group_by(Contributor.id)
+            .order_by(func.sum(Contribution.amount).desc())
+            .limit(page_size)
+            .offset((page - 1) * page_size)
+            .all()
+        )
+
+        return contributors_query
+            
+
+    @staticmethod
+    def get_contributions_by_project(project_id: uuid.UUID, db: object) -> list:
+        contributions = db.query(Contribution).filter(Contribution.project_id == project_id).all()
+        if not contributions:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="No contributions found for this project"
+            )
+        return contributions
