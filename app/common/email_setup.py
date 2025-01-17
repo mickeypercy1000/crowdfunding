@@ -1,14 +1,14 @@
 from fastapi import FastAPI
 from fastapi_mail import FastMail, MessageSchema, ConnectionConfig
-
+from decouple import config
 from app.schema.authentication import SignupResponseSchema
 
 app = FastAPI()
 
 # Sendgrid Email configuration
 conf = ConnectionConfig(
-    MAIL_USERNAME="apikey",
-    MAIL_PASSWORD="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",
+    MAIL_USERNAME=config("MAIL_USERNAME"),
+    MAIL_PASSWORD=config("MAIL_PASSWORD"),
     MAIL_FROM="ma@kpentagdigital.com",
     MAIL_PORT=587,
     MAIL_SERVER="smtp.sendgrid.net",
