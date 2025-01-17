@@ -7,7 +7,7 @@ from decouple import config
 class Settings(BaseSettings):
 
     # Environment Settings
-    ENV: str = "development"
+    ENV: str = "production"
     DEBUG: bool = True
     HOST: str = "0.0.0.0"
     PORT: int = 8000
