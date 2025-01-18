@@ -42,6 +42,7 @@ async def login(data: LoginRequestSchema, db: Session = Depends(get_db)):
 @router.get("/me", response_model=MyDetailsResponseSchema)
 async def get_profile(current_user: User = Depends(UserUtils.get_current_user)):
     return MyDetailsResponseSchema(
+        status=True,
         id=current_user.id,
         email=current_user.email,
         username=current_user.username,

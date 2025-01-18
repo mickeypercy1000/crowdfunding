@@ -1,15 +1,12 @@
 FROM python:3.9-slim
 
-ENV PYTHONUNBUFFERED=1
-ENV LANG=C.UTF-8
-
 WORKDIR /app
 
-COPY requirements.txt /app/
+COPY requirements.txt .
 
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install -r requirements.txt
 
-COPY . /app/
+COPY . .
 
 EXPOSE 8000
 

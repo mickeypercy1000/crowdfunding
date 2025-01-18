@@ -15,14 +15,17 @@ class ProjectRequestSchema(BaseModel):
 
     class Config:
         from_attributes = True
-        str_strip_whitespace = True
-        str_min_length = 1
     
     @root_validator(pre=True)
     def check_fields_not_empty(cls, values):
         for field_name, field_value in values.items():
-            if field_name == "description":
+            if field_name.lower() == "description":
                 continue
+            if field_name.lower() == "deadline":
+                field_value = datetime.strptime(field_value, "%Y-%m-%d").date()
+                if field_value < date.today():
+                    raise ValueError(f"Deadline must not be less than today's date. Given deadline: {field_value}")
+
             if isinstance(field_value, str) and not field_value.strip():
                 raise ValueError(f"{field_name} must not be empty or blank")
             if field_name == "goal_amount":
@@ -41,10 +44,9 @@ class ProjectContributors(BaseModel):
         from_attributes = True
 
 class ProjectResponseSchema(BaseModel):
-    status: bool
     id: uuid.UUID
     title: str
-    description: str
+    description: str = ""
     goal_amount: float
     deadline: date
     total_contribution: float
@@ -55,7 +57,6 @@ class ProjectResponseSchema(BaseModel):
         populate_by_name = True
 
 class ModifiedProjectResponseSchema(BaseModel):
-    status: bool
     project: ProjectResponseSchema
     contributors: Optional[List[ProjectContributors]] = []
 
@@ -81,7 +82,6 @@ class ContributionRequestSchema(BaseModel):
         return values
 
 class ContributionResponseSchema(BaseModel):
-    status: bool
     id: uuid.UUID
     amount: float
     contributor: MyDetailsResponseSchema

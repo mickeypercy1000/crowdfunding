@@ -24,8 +24,8 @@ class SignUpRequestSchema(BaseModel):
         return UserUtils.validate_password(value)
 
 class SignupResponseSchema(BaseModel):
-    id: uuid.UUID = None
     status: bool
+    id: uuid.UUID = None
     message: str
 
 
@@ -51,6 +51,7 @@ class LoginResponseSchema(BaseModel):
     access_token: str = None
 
 class MyDetailsResponseSchema(BaseModel):
+    status: bool = False
     id: uuid.UUID = None
     email: EmailStr = None
     firstname: str = None

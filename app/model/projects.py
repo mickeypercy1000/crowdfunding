@@ -7,7 +7,7 @@ from sqlalchemy import Numeric
 class Project(BaseData):
     __tablename__ = 'Project'
     title = Column(String(100), index=True, unique=True)
-    description = Column(String(500))
+    description = Column(String(500), nullable=True)
     goal_amount = Column(Numeric(10, 2))
     deadline = Column(Date)
     creator_id = Column(UUID, ForeignKey('User.id'), nullable=False)

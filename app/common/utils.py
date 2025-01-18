@@ -26,15 +26,15 @@ class UserUtils:
 
     @staticmethod
     def check_user_exists(data: dict, db) -> bool:
-        if _ := db.query(User).filter(
-            or_(
-                User.email == data.email,
-                User.username == data.username
-            )
-        ).first():
+        if _ := db.query(User).filter(User.email == data.email).first():
             raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="User with this email or username already exists"
+            detail="User with this email already exists"
+            )
+        if _ := db.query(User).filter(User.username == data.username).first():
+            raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="User with this username already exists"
             )
         return UserUtils.signup_user(data, db)
     

@@ -20,7 +20,6 @@ async def create_project(project: ProjectRequestSchema, db: Session = Depends(ge
     total_contributors = db.query(Contribution.contributor_id).filter(Contribution.project_id == new_project.id).distinct().count()
 
     return ProjectResponseSchema(
-        status=True,
         id=new_project.id,
         title=new_project.title.title(),
         description=new_project.description,
@@ -28,7 +27,7 @@ async def create_project(project: ProjectRequestSchema, db: Session = Depends(ge
         total_contribution=new_project.total_contribution,
         deadline=new_project.deadline,
         total_contributors=total_contributors,
-        creator=MyDetailsResponseSchema.from_orm(new_project.creator),
+        creator=MyDetailsResponseSchema.model_validate(new_project.creator),
     )
 
 
@@ -42,11 +41,10 @@ async def contribute_to_project(
     project = ProjectUtils.get_project_by_id(project_id, db)
     contribute = ProjectUtils.create_contribution(contribution, project, current_user, db)
     return ContributionResponseSchema(
-        status=True,
         id=contribute.id,
         amount=contribute.amount,
-        contributor=MyDetailsResponseSchema.from_orm(contribute.contributor),
-        project=ProjectResponseSchema.from_orm(project)
+        contributor=MyDetailsResponseSchema.model_validate(contribute.contributor),
+        project=ProjectResponseSchema.model_validate(project)
     )
 
 
@@ -59,14 +57,13 @@ async def get_projects(
     projects = db.query(Project).offset(skip).limit(limit).all()
     return [
         ProjectResponseSchema(
-            status=True,
             id=project.id,
             title=project.title,
-            description=project.description,
+            description=project.description or "",
             goal_amount=project.goal_amount,
             deadline=project.deadline,
             total_contribution=project.total_contribution,
-            creator=MyDetailsResponseSchema.from_orm(project.creator),
+            creator=MyDetailsResponseSchema.model_validate(project.creator),
         )
         for project in projects
     ]
@@ -91,14 +88,13 @@ async def get_project(
     ]
     return ModifiedProjectResponseSchema(
         project=ProjectResponseSchema(
-            status=True,
             id=project.id,
             title=project.title,
             description=project.description,
             goal_amount=project.goal_amount,
             total_contribution=project.total_contribution,
             deadline=project.deadline,
-            creator=MyDetailsResponseSchema.from_orm(project.creator),
+            creator=MyDetailsResponseSchema.model_validate(project.creator),
         ),
         contributors=contributors_data,
     )
@@ -121,11 +117,10 @@ async def get_contribution(
 
     return [
         ContributionResponseSchema(
-            status=True,
             id=contribution.id,
             amount=contribution.amount,
             project=project,
-            contributor=MyDetailsResponseSchema.from_orm(contribution.contributor)
+            contributor=MyDetailsResponseSchema.model_validate(contribution.contributor)
         )
         for contribution in contributions_query
     ]
@@ -148,9 +143,8 @@ async def get_single_contribution(
         )
     
     return ContributionResponseSchema(
-        status=True,
         id=contribution.id,
         amount=contribution.amount,
         project=project,
-        contributor=MyDetailsResponseSchema.from_orm(contribution.contributor)
+        contributor=MyDetailsResponseSchema.model_validate(contribution.contributor)
     )

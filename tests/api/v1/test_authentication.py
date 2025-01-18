@@ -1,10 +1,8 @@
-from datetime import datetime
 import unittest
-import uuid
 from fastapi.testclient import TestClient
 from app.main import app
 from tests.api.v1.fakedb_setup import cleanup_db
-from tests.api.v1.faker import generate_sample_user_data
+from tests.api.v1.fake_data import generate_sample_user_data
 
 client = TestClient(app)
 
@@ -29,6 +27,7 @@ class TestUserAuth(unittest.TestCase):
         client.post(self.signup_endpoint, json=user_data).json()
         response = client.post(self.login_endpoint, json={"email": user_data["email"], "password": user_data["password"]})
         self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["status"], True)
         self.assertIn("access_token", response.json())
 
     def test_get_my_details(self):
@@ -38,7 +37,7 @@ class TestUserAuth(unittest.TestCase):
         access_token = response["access_token"]
         details = client.get(self.my_details_endpoint, headers={"Authorization": f"Bearer {access_token}"}).json()
         
-        # self.assertEqual(details["status"], True)
+        self.assertEqual(details["status"], True)
         self.assertEqual(details["email"], user_data["email"])
         self.assertEqual(details["username"], user_data["username"])
         self.assertEqual(details["firstname"], user_data["firstname"])

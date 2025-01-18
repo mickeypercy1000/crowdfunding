@@ -1,38 +1,27 @@
-version: '3.8'
+# version: '3'
 
-services:
-  app:
-    build: .
-    container_name: fastapi-app
-    ports:
-      - "8000:8000"
-    volumes:
-      - .:/app
-    environment:
-      - DATABASE_URL=postgresql://user:password@db:5432/mydatabase
-    depends_on:
-      - db
+# services:
+#   web:
+#     build: .
+#     depends_on:
+#       - db
+#     volumes:
+#       - ./:/code:ro
+#     environment:
+#       - DATABASE_URL=postgresql://postgres:Bright#1270@localhost:5433/dockert
+#     ports:
+#       - "8000:80"
 
-  db:
-    image: postgres:13
-    container_name: fastapi-db
-    environment:
-      POSTGRES_DB: mydatabase
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
+#   db:
+#       image: postgres:15-alpine
+#       volumes:
+#         - postgres_data:/var/lib/postgresql/data/
+#       expose:
+#         - 5433
+#       environment:
+#         - POSTGRES_USER=postgres
+#         - POSTGRES_PASSWORD=Bright#1270
+#         - POSTGRES_DB=dockert
 
-  pgadmin:
-    image: dpage/pgadmin4
-    container_name: pgadmin
-    environment:
-      PGADMIN_DEFAULT_EMAIL: admin@admin.com
-      PGADMIN_DEFAULT_PASSWORD: admin
-    ports:
-      - "5050:80"
-
-volumes:
-  postgres_data:
+# volumes:
+#       postgres_data: 
