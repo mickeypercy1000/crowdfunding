@@ -115,7 +115,7 @@ async def get_contribution(
         .all()
     )
 
-    return [
+    response = [
         ContributionResponseSchema(
             id=contribution.id,
             amount=contribution.amount,
@@ -124,6 +124,8 @@ async def get_contribution(
         )
         for contribution in contributions_query
     ]
+    print(response)
+    return response
 
 
 @router.get("/{project_id}/contributions/{contribution_id}", response_model=ContributionResponseSchema)

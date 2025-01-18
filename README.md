@@ -49,7 +49,6 @@ The app runs on Uvicorn and allows easy interaction with endpoints for user auth
 6. Visit http://127.0.0.1:8000/docs in your browser to interact with the application's APIs.
 
 
-
 **API Endpoints**
 1. User Authentication
 
@@ -68,6 +67,12 @@ The app runs on Uvicorn and allows easy interaction with endpoints for user auth
     - POST /api/v1/projects/`{project_id}`/contributions: contributions: Makes a contribution to a project.
     - GET /api/v1/projects/`{project_id}`/contributions: Lists all contributions for a project.
 
+**DOKER HUB**
+- This project is accessible on Docker Hub via the following link: `https://hub.docker.com/r/mickeypercy1000/transactshield-crowdfunding-test`
+- Use the command `docker pull mickeypercy1000/transactshield-crowdfunding-test`
+- Verifiy the image in your code editor by running `docker images`. This command should show the image you just pulled
+- To run the application through the image, run `docker run mickeypercy1000/transactshield-crowdfunding-test`
+- The project is available on port `8000`
 
 **Environment Variables**
 
